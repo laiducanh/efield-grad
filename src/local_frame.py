@@ -9,6 +9,9 @@ def get_local_axes(A, B, C):
     r1 = B - A
     r2 = C - A
 
+    if np.allclose(np.cross(r1, r2), np.array([0,0,0])):
+        raise RuntimeError('Atoms are nearly collinear')
+
     z = r1 / np.linalg.norm(r1)
     y = np.cross(r1, r2) / np.linalg.norm(np.cross(r1, r2))
     x = np.cross(y, z)
