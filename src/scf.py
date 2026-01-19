@@ -9,12 +9,12 @@ from .utilis import process_efield
 class EFieldRHF(hf.RHF):
     _keys = hf.RHF._keys
     _keys.update({'efield_strength', 'efield_R', 'efield_atoms', 'old_paxes'})
-    def __init__(self, mol:gto.Mole, efield=0.0, Rotation=np.eye(3), atoms=None):
+    def __init__(self, mol:gto.Mole, efield=0.0, rotation=np.eye(3), atoms=None):
         """ if `atoms` is specified, local frame will be defined by `atoms` """
         super().__init__(mol)
 
         self.efield_strength = efield
-        self.efield_R = Rotation
+        self.efield_R = rotation
         self.old_paxes = None
         self.mol = mol
         if atoms is None:
