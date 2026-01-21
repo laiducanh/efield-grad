@@ -51,8 +51,8 @@ class EFieldCCSDGradients(ccsd.Gradients):
         if self.mol.symmetry:
             self.de = self.symmetrize(self.de, atmlst)
         
-        de_fd = ccsd_grad_fd(self.mol, self.efield_strength, self.efield_R, self.efield_atoms)
-        logger.note(self, 'Check with finite difference %.10f' % np.linalg.norm(de_fd-self.de))
+        # de_fd = ccsd_grad_fd(self.mol, self.efield_strength, self.efield_R, self.efield_atoms)
+        # logger.note(self, 'Check with finite difference %.10f' % np.linalg.norm(de_fd-self.de))
         # self._write(self.mol, de_fd, self.atmlst)
         
         self._finalize()
