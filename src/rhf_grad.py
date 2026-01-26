@@ -8,13 +8,14 @@ import numpy as np
 
 class EFieldRHFGradients(rhf.Gradients):
     _keys = rhf.Gradients._keys
-    _keys.update({'efield_strength', 'efield_R', 'efield_atoms'})
+    _keys.update({'efield_strength', 'efield_R', 'efield_atoms','finite_diff'})
     def __init__(self, method:EFieldRHF):
         super().__init__(method)
         
         self.efield_strength = method.efield_strength
         self.efield_R = method.efield_R
         self.efield_atoms = method.efield_atoms
+        self.finite_diff = False
     
     def kernel(self, mo_energy=None, mo_coeff=None, mo_occ=None, atmlst=None):
         cput0 = (logger.process_clock(), logger.perf_counter())
@@ -46,16 +47,17 @@ class EFieldRHFGradients(rhf.Gradients):
         g = grad_efield(self.mol, dm, self.efield_strength, 
                         self.efield_R, self.base.old_paxes, self.efield_atoms)
         self.base._set_old_paxes()
-        if self.verbose >= logger.DEBUG:
+        if self.verbose >= logger.DEBUG or self.finite_diff:
             finalize(self, g)
         self.de += g
 
         if self.mol.symmetry:
             self.de = self.symmetrize(self.de, atmlst)
         
-        # de_fd = rhf_grad_fd(self.mol, self.efield_strength, self.efield_R, self.efield_atoms)
-        # logger.note(self, 'Check with finite difference %.10f' % np.linalg.norm(de_fd-self.de))
-        # self._write(self.mol, de_fd, self.atmlst)
+        if self.finite_diff:
+            de_fd = rhf_grad_fd(self.mol, self.efield_strength, self.efield_R, self.efield_atoms)
+            logger.note(self, 'Check with finite difference %.10f' % np.linalg.norm(de_fd-self.de))
+            self._write(self.mol, de_fd, self.atmlst)
 
         logger.timer(self, 'SCF gradients', *cput0)
         self._finalize()

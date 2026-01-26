@@ -7,12 +7,13 @@ import numpy as np
 
 class EFieldCCSDGradients(ccsd.Gradients):
     _keys = ccsd.Gradients._keys
-    _keys.update({'efield_strength', 'efield_R', 'efield_atoms'})
+    _keys.update({'efield_strength', 'efield_R', 'efield_atoms','finite_diff'})
     def __init__(self, method):
         super().__init__(method)
         self.efield_strength = method._scf.efield_strength
         self.efield_R = method._scf.efield_R
         self.efield_atoms = method._scf.efield_atoms
+        self.finite_diff = False
 
     def kernel(self, t1=None, t2=None, l1=None, l2=None, eris=None,
                      atmlst=None, verbose=None):
@@ -44,16 +45,17 @@ class EFieldCCSDGradients(ccsd.Gradients):
         g = grad_efield(self.mol, dm, self.efield_strength, 
                         self.efield_R, mycc._scf.old_paxes, self.efield_atoms)
         mycc._scf._set_old_paxes()
-        if self.verbose >= logger.DEBUG:
+        if self.verbose >= logger.DEBUG or self.finite_diff:
             finalize(self, g)
         self.de += g
 
         if self.mol.symmetry:
             self.de = self.symmetrize(self.de, atmlst)
         
-        # de_fd = ccsd_grad_fd(self.mol, self.efield_strength, self.efield_R, self.efield_atoms)
-        # logger.note(self, 'Check with finite difference %.10f' % np.linalg.norm(de_fd-self.de))
-        # self._write(self.mol, de_fd, self.atmlst)
+        if self.finite_diff:
+            de_fd = ccsd_grad_fd(self.mol, self.efield_strength, self.efield_R, self.efield_atoms)
+            logger.note(self, 'Check with finite difference %.10f' % np.linalg.norm(de_fd-self.de))
+            self._write(self.mol, de_fd, self.atmlst)
         
         self._finalize()
         return self.de
