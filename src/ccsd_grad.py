@@ -4,6 +4,7 @@ from .utilis import relaxed_dm, finalize
 from .grad import grad_efield
 from .finite_diff import ccsd_grad_fd
 import numpy as np
+import time
 
 class EFieldCCSDGradients(ccsd.Gradients):
     _keys = ccsd.Gradients._keys
@@ -41,12 +42,14 @@ class EFieldCCSDGradients(ccsd.Gradients):
         self.de = de + self.grad_nuc(atmlst=atmlst)
         
         # Add electric field contribution
+        t0 = time.time()
         dm = relaxed_dm(mycc, self.mol, t1, t2, l1, l2, eris, atmlst)    
-        g = grad_efield(self.mol, dm, self.efield_strength, 
-                        self.efield_R, mycc._scf.old_paxes, self.efield_atoms)
+        g = grad_efield(self.mol, dm, self.efield_strength, self.efield_R, 
+                        mycc._scf.old_paxes, self.efield_atoms, self.finite_diff)
         mycc._scf._set_old_paxes()
-        if self.verbose >= logger.DEBUG or self.finite_diff:
+        if self.verbose >= logger.NOTE or self.finite_diff:
             finalize(self, g)
+            logger.note(self, 'Electric field gradients time: %.3f' % (time.time()-t0))
         self.de += g
 
         if self.mol.symmetry:

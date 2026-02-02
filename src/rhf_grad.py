@@ -5,6 +5,7 @@ from .finite_diff import rhf_grad_fd
 from .utilis import finalize
 from .scf import EFieldRHF
 import numpy as np
+import time
 
 class EFieldRHFGradients(rhf.Gradients):
     _keys = rhf.Gradients._keys
@@ -43,12 +44,14 @@ class EFieldRHFGradients(rhf.Gradients):
             self.de += self.get_dispersion()
    
         # Add electric field contribution
+        t0 = time.time()
         dm = self.base.make_rdm1()
-        g = grad_efield(self.mol, dm, self.efield_strength, 
-                        self.efield_R, self.base.old_paxes, self.efield_atoms)
+        g = grad_efield(self.mol, dm, self.efield_strength, self.efield_R, 
+                        self.base.old_paxes, self.efield_atoms, self.finite_diff)
         self.base._set_old_paxes()
-        if self.verbose >= logger.DEBUG or self.finite_diff:
+        if self.verbose >= logger.NOTE or self.finite_diff:
             finalize(self, g)
+            logger.note(self, 'Electric field gradients time: %.3f' % (time.time()-t0))
         self.de += g
 
         if self.mol.symmetry:
