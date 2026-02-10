@@ -29,7 +29,7 @@ def dipint_grad_fd(mol:gto.Mole):
             
     return dipder_fd
 
-def efield_grad_fd(mol:gto.Mole, efield, R, old_paxes=None, atoms=None):
+def efield_grad_fd(mol:gto.Mole, efield, rvec, R, old_paxes=None, atoms=None):
     N = mol.natm
     delta = 1e-5
     coords = mol.atom_coords()
@@ -56,20 +56,20 @@ def efield_grad_fd(mol:gto.Mole, efield, R, old_paxes=None, atoms=None):
             else:
                 U_minus = get_local_axes(*(coords-disp)[atoms])[0]
          
-            field_minus = process_efield(U_minus, efield, R)
-            field_plus = process_efield(U_plus, efield, R)
+            field_minus = process_efield(U_minus, efield, R, rvec)
+            field_plus = process_efield(U_plus, efield, R, rvec)
 
             efield_de_fd[at,xyz] = (field_plus-field_minus)/(2*delta)
            
     return efield_de_fd
 
 
-def rhf_grad_fd(mol:gto.Mole, efield, R, atoms=None):
+def rhf_grad_fd(mol:gto.Mole, efield, R, rvec, atoms=None):
     N = mol.natm
     delta = 1e-6
     coords = mol.atom_coords()
     energy_de = np.zeros((N, 3))
-    mf = EFieldRHF(mol, efield, R, atoms)
+    mf = EFieldRHF(mol, efield, R, rvec, atoms)
     mf.verbose = 0
     mf._set_old_paxes()
     for at in range(N):
@@ -78,14 +78,14 @@ def rhf_grad_fd(mol:gto.Mole, efield, R, atoms=None):
             disp[at,xyz] = delta
             # +delta displacement            
             mol.set_geom_(coords+disp, unit='Bohr')
-            mf_plus = EFieldRHF(mol, efield, R, atoms)
+            mf_plus = EFieldRHF(mol, efield, R, rvec, atoms)
             mf_plus.old_paxes = mf.old_paxes
             mf_plus.verbose = 0
             e_plus = mf_plus.kernel()
 
             # -delta displacement
             mol.set_geom_(coords-disp, unit='Bohr')
-            mf_minus = EFieldRHF(mol, efield, R, atoms)
+            mf_minus = EFieldRHF(mol, efield, R, rvec, atoms)
             mf_minus.old_paxes = mf.old_paxes
             mf_minus.verbose = 0
             e_minus = mf_minus.kernel()
@@ -94,12 +94,12 @@ def rhf_grad_fd(mol:gto.Mole, efield, R, atoms=None):
 
     return energy_de
 
-def ccsd_grad_fd(mol:gto.Mole, efield, R, atoms=None):
+def ccsd_grad_fd(mol:gto.Mole, efield, R, rvec, atoms=None):
     N = mol.natm
     delta = 1e-6
     coords = mol.atom_coords()
     energy_de = np.zeros((N, 3))
-    mf = EFieldRHF(mol, efield, R, atoms)
+    mf = EFieldRHF(mol, efield, R, rvec, atoms)
     mf.verbose = 0
     mf._set_old_paxes()
     for at in range(N):
@@ -108,7 +108,7 @@ def ccsd_grad_fd(mol:gto.Mole, efield, R, atoms=None):
             disp[at,xyz] = delta
             # +delta displacement            
             mol.set_geom_(coords+disp, unit='Bohr')
-            mf_plus = EFieldRHF(mol, efield, R, atoms)
+            mf_plus = EFieldRHF(mol, efield, R, rvec, atoms)
             mf_plus.old_paxes = mf.old_paxes
             mf_plus.verbose = 0
             e_plus = mf_plus.kernel()
@@ -119,7 +119,7 @@ def ccsd_grad_fd(mol:gto.Mole, efield, R, atoms=None):
 
             # -delta displacement
             mol.set_geom_(coords-disp, unit='Bohr')
-            mf_minus = EFieldRHF(mol, efield, R, atoms)
+            mf_minus = EFieldRHF(mol, efield, R, rvec, atoms)
             mf_minus.old_paxes = mf.old_paxes
             mf_minus.verbose = 0
             e_minus = mf_minus.kernel()

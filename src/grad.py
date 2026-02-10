@@ -7,7 +7,7 @@ from .local_frame import get_local_axes
 from .local_frame import dU_dR as lf_dU
 from .finite_diff import efield_grad_fd, dipint_grad_fd
 
-def grad_efield(mol:gto.Mole, dm:np.ndarray, efield:float, R:np.ndarray, old_paxes:np.ndarray, atoms=None, finite_diff=False):
+def grad_efield(mol:gto.Mole, dm:np.ndarray, efield:float, rvec:np.ndarray, R:np.ndarray, old_paxes:np.ndarray, atoms=None, finite_diff=False):
     """ dm is (relaxed) density matrix 
         efield is the electric field strength 
         theta, phi are in degrees
@@ -23,7 +23,7 @@ def grad_efield(mol:gto.Mole, dm:np.ndarray, efield:float, R:np.ndarray, old_pax
         _, U = get_principal_axes(mol.atom_coords(), mol.atom_mass_list(), old_paxes)
     else:
         U = get_local_axes(*mol.atom_coords()[atoms])[0]
-    EFIELD = process_efield(U, efield, R)
+    EFIELD = process_efield(U, efield, R, rvec)
     print('Electric field: Ex = {:.5f}, Ey = {:.5f}, Ez = {:.5f}'.format(*EFIELD))
         
     # derivatives of electric field in the principal axes
@@ -31,9 +31,9 @@ def grad_efield(mol:gto.Mole, dm:np.ndarray, efield:float, R:np.ndarray, old_pax
         dU = pf_dU(mol.atom_coords(), mol.atom_mass_list(), old_paxes)
     else:
         dU = lf_dU(mol.atom_coords(), atoms)
-    efield_de = process_efield(dU, efield, R)
+    efield_de = process_efield(dU, efield, R, rvec)
     if finite_diff:
-        efield_de_fd = efield_grad_fd(mol, efield, R, old_paxes, atoms)
+        efield_de_fd = efield_grad_fd(mol, efield, rvec, R, old_paxes, atoms)
         print('Check derivatives of electric field', np.linalg.norm(efield_de-efield_de_fd))
     g += np.einsum('ijk, k->ij', efield_de, dip_moment)
 

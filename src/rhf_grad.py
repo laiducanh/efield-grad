@@ -9,12 +9,13 @@ import time
 
 class EFieldRHFGradients(rhf.Gradients):
     _keys = rhf.Gradients._keys
-    _keys.update({'efield_strength', 'efield_R', 'efield_atoms','finite_diff'})
+    _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_atoms', 'finite_diff'})
     def __init__(self, method:EFieldRHF):
         super().__init__(method)
         
         self.efield_strength = method.efield_strength
         self.efield_R = method.efield_R
+        self.efield_rvec = method.efield_rvec
         self.efield_atoms = method.efield_atoms
         self.finite_diff = False
     
@@ -46,19 +47,19 @@ class EFieldRHFGradients(rhf.Gradients):
         # Add electric field contribution
         t0 = time.time()
         dm = self.base.make_rdm1()
-        g = grad_efield(self.mol, dm, self.efield_strength, self.efield_R, 
+        g = grad_efield(self.mol, dm, self.efield_strength, self.efield_rvec, self.efield_R, 
                         self.base.old_paxes, self.efield_atoms, self.finite_diff)
         self.base._set_old_paxes()
         if self.verbose >= logger.NOTE or self.finite_diff:
             finalize(self, g)
-            logger.note(self, 'Electric field gradients time: %.3f' % (time.time()-t0))
+            logger.note(self, 'Electric field gradients time: %.3f s' % (time.time()-t0))
         self.de += g
 
         if self.mol.symmetry:
             self.de = self.symmetrize(self.de, atmlst)
         
         if self.finite_diff:
-            de_fd = rhf_grad_fd(self.mol, self.efield_strength, self.efield_R, self.efield_atoms)
+            de_fd = rhf_grad_fd(self.mol, self.efield_strength, self.efield_R, self.efield_rvec, self.efield_atoms)
             logger.note(self, 'Check with finite difference %.10f' % np.linalg.norm(de_fd-self.de))
             self._write(self.mol, de_fd, self.atmlst)
 

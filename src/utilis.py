@@ -135,11 +135,11 @@ def int1e_deriv(atom_id:float, eint, mol:gto.Mole):
    
     return nint
 
-def process_efield(U:np.ndarray, efield, R):
+def process_efield(U:np.ndarray, efield, R, rvec=np.array([0,0,1])):
     """ U is eigenvectors or derivatives of eigenvectors """
-    
-    efield = U @ R[:,2] * efield # rotate the third vector
 
+    efield = U @ R @ rvec * efield # rotate the third vector
+    
     return efield
 
 def finalize(grad, de):

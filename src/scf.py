@@ -8,13 +8,14 @@ from .utilis import process_efield
 
 class EFieldRHF(hf.RHF):
     _keys = hf.RHF._keys
-    _keys.update({'efield_strength', 'efield_R', 'efield_atoms', 'old_paxes'})
-    def __init__(self, mol:gto.Mole, efield=0.0, rotation=np.eye(3), atoms=None):
+    _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_atoms', 'old_paxes'})
+    def __init__(self, mol:gto.Mole, efield=0.0, rotation=np.eye(3), rvec=(0,0,1), atoms=None):
         """ if `atoms` is specified, local frame will be defined by `atoms` """
         super().__init__(mol)
 
         self.efield_strength = efield
         self.efield_R = rotation
+        self.efield_rvec = np.asarray(rvec)
         self.old_paxes = None
         self.mol = mol
         if atoms is None:
@@ -42,7 +43,7 @@ class EFieldRHF(hf.RHF):
         else:
             axes = get_local_axes(*self.mol.atom_coords()[self.efield_atoms])[0]
             
-        return process_efield(axes, self.efield_strength, self.efield_R)
+        return process_efield(axes, self.efield_strength, self.efield_R, self.efield_rvec)
 
     def _set_old_paxes(self, old_axes=None):
         if old_axes is None:
