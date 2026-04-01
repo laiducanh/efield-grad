@@ -55,7 +55,7 @@ def dU_ABC(A, B, C):
     # d_v1 / d_R = d_v1/d_v * d_v/d_R
     # v1 = v / ||v||
     v = B-A
-    dz_dRA = -d_vector(v)
+    dz_dRA = d_vector(v) * (-1)
     dz_dRB = d_vector(v)
     dz_dRC = np.zeros((3,3))
 

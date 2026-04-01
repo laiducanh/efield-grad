@@ -46,6 +46,8 @@ class EFieldRHF(hf.RHF):
         return process_efield(axes, self.efield_strength, self.efield_R, self.efield_rvec)
 
     def _set_old_paxes(self, old_axes=None):
+        if self.efield_atoms is not None:
+            return 
         if old_axes is None:
             mol = self.mol
             _, self.old_paxes = get_principal_axes(mol.atom_coords(), mol.atom_mass_list(), self.old_paxes)
