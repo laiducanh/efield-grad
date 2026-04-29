@@ -59,6 +59,7 @@ mol.unit = 'Angstrom'
 mol.build()
 ```
 2. Define the electric field
+
 The electric field vector $E$ is defined as 
 
 $$
@@ -77,6 +78,7 @@ atoms=[5, 2, 6]
 # atoms = None # otherwise the PAF is used by default
 ```
 3. Single-point calculations
+
 Restricted Hartree-Fock and CCSD single-point calculations are performed with field-perturbed Hamiltonian
 ```Python
 from efield_grad import EFieldRHF
@@ -88,6 +90,7 @@ mycc = cc.CCSD(mf)
 e_corr, t1, t2 = mycc.kernel()
 ```
 4. Geometry optimization
+
 Geometry optimization using CCSD level
 ```Python
 from efield_grad import EFieldCCSDGradients
