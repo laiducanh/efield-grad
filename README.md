@@ -1,6 +1,9 @@
 Analytic nuclear gradients in the presence of oriented external electric fields in a molecule-fixed frame.
 
-This repository provides implementations for single-point calculations and geometry optimizations under oriented external electric fields within molecule-fixed frames, including Principal axis frame (PAF) and Local reference frame (LRF).
+This repository provides implementations for **single-point calculations** and **geometry optimizations** under oriented external electric fields within molecule-fixed frames, including:
+
+- Principal Axis Frame (PAF)
+- Local Reference Frame (LRF)
 
 ---
 ### Requirements
@@ -31,7 +34,7 @@ pip install numpy scipy
 ```
 
 ### Usage Example
-First, build a PySCF molecule instance
+1. Build a PySCF molecule
 ```Python
 import numpy as np
 from pyscf import gto
@@ -55,10 +58,11 @@ mol.basis = 'cc-pvdz'
 mol.unit = 'Angstrom'
 mol.build()
 ```
-The electric field vector $E$ is defined by 
+2. Define the electric field
+The electric field vector $E$ is defined as 
 
 $$
-E = \mathbf{U}\,\mathbf{R}\,\mathbf{r}\Vert E\Vert
+E = \mathbf{U}\mathbf{R}\mathbf{r}\Vert E\Vert
 $$
 
 where $\mathbf U$, $\bf{R}$, $\mathbf r$, and $\Vert E\Vert$ are the transformation matrix, rotation matrix, reference vector, and field strength (in atomic units), respectively. The transformation matrix $\mathbf U$ will be internally determined depending on the molecule-fixed frame in used. By default, the electric field is assumed to be defined in the PAF. In this frame, the eigenvectors of the inertia tensor are sorted in descending order, such that the first principal axis corresponds to the largest eigenvalue. If three non-collinear atoms are specified, the LRF is used instead.
@@ -72,6 +76,7 @@ rvec=[0, 0, 1]
 atoms=[5, 2, 6]
 # atoms = None # otherwise the PAF is used by default
 ```
+3. Single-point calculations
 Restricted Hartree-Fock and CCSD single-point calculations are performed with field-perturbed Hamiltonian
 ```Python
 from efield_grad import EFieldRHF
@@ -82,6 +87,7 @@ mycc = cc.CCSD(mf)
 # mycc.set_frozen() # frozen-core
 e_corr, t1, t2 = mycc.kernel()
 ```
+4. Geometry optimization
 Geometry optimization using CCSD level
 ```Python
 from efield_grad import EFieldCCSDGradients
