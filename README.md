@@ -1,6 +1,6 @@
 Analytic nuclear gradients in the presence of oriented external electric fields in a molecule-fixed frame.
 
-This repository provides implementations for single-point calculations and geometry optimizations under oriented external electric fields within molecule-fixed frames, including Principal axis frame and Local reference frame.
+This repository provides implementations for single-point calculations and geometry optimizations under oriented external electric fields within molecule-fixed frames, including Principal axis frame (PAF) and Local reference frame (LRF).
 
 ---
 ### Requirements
@@ -55,4 +55,46 @@ mol.basis = 'cc-pvdz'
 mol.unit = 'Angstrom'
 mol.build()
 ```
+The electric field vector $\varepsilon$ is defined by 
+$$
+\varepsilon = \mathbf{U\,R\,r}\Vert\varepsilon\Vert
+$$
+where $\mathbf U$, $\mathbf{R}$, $\mathbf r$, and $\Vert\varepsilon\Vert$ are the transformation matrix, rotation matrix, reference vector, and field strength (in atomic units), respectively. The transformation matrix $\mathbf U$ will be internally determined depending on the molecule-fixed frame in used. By default, the electric field is assumed to be defined in the PAF. In this frame, the eigenvectors of the inertia tensor are sorted in descending order, such that the first principal axis corresponds to the largest eigenvalue. If three non-collinear atoms are specified, the LRF is used instead.
+```Python
+from scipy.spatial.transform import Rotation
 
+efield = 0.05
+R = Rotation.from_euler('x', 90, degrees=True).as_matrix()
+rvec=[0, 0, 1]
+atoms=[5, 2, 6]
+```
+Restricted Hartree-Fock and CCSD single-point calculations are performed with field-perturbed Hamiltonian
+```Python
+from efield_grad import EFieldRHF
+
+mf = EFieldRHF(mol, efield=efield, R=R, rvec=rvec, atoms=atoms)
+mf.kernel()
+mycc = cc.CCSD(mf)
+# mycc.set_frozen() # frozen-core
+e_corr, t1, t2 = mycc.kernel()
+```
+Geometry optimization using CCSD level
+```Python
+from efield_grad import EFieldCCSDGradients
+
+conv_params = { # These are the default settings
+    'convergence_energy': 1e-5,  # Eh
+    'convergence_grms': 3e-4,    # Eh/Bohr
+    'convergence_gmax': 4.5e-4,  # Eh/Bohr
+    'convergence_drms': 1.2e-3,  # Angstrom
+    'convergence_dmax': 1.8e-3,  # Angstrom
+    'maxiter': 1,    
+}
+mol_eq = EFieldCCSDGradients(mycc)
+mol_eq.optimizer(solver='geometric').kernel(conv_params)
+print(mol_eq.tostring())
+```
+
+### Citation
+If you use this code in your research, please cite:
+> Duc Anh Lai, Devin Matthews (2026). \textit{Analytic nuclear gradients including oriented external electric fields in a molecule-fixed frame}. J. Chem. Theory Comput. (under review) [arXiv:2604.01189](https://arxiv.org/abs/2604.01189).
