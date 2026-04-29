@@ -61,11 +61,11 @@ mol.build()
 2. Define the electric field
 The electric field vector $E$ is defined as 
 
-`
-E = U R r ||E||
-`
+$$
+E = U R r \Vert E\Vert
+$$
 
-where $\mathbf U$, $\bf{R}$, $\mathbf r$, and $\Vert E\Vert$ are the transformation matrix, rotation matrix, reference vector, and field strength (in atomic units), respectively. The transformation matrix $\mathbf U$ will be internally determined depending on the molecule-fixed frame in used. By default, the electric field is assumed to be defined in the PAF. In this frame, the eigenvectors of the inertia tensor are sorted in descending order, such that the first principal axis corresponds to the largest eigenvalue. If three non-collinear atoms are specified, the LRF is used instead.
+where $U$, $R$, $r$, and $\Vert E\Vert$ are the transformation matrix, rotation matrix, reference vector, and field strength (in atomic units), respectively. The transformation matrix $U$ will be internally determined depending on the molecule-fixed frame in used. By default, the electric field is assumed to be defined in the PAF. In this frame, the eigenvectors of the inertia tensor are sorted in descending order, such that the first principal axis corresponds to the largest eigenvalue. If three non-collinear atoms are specified, the LRF is used instead.
 ```Python
 from scipy.spatial.transform import Rotation
 
