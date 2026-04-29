@@ -3,4 +3,9 @@ Analytic nuclear gradients in the presence of oriented external electric fields 
 This repository provides implementations for single-point calculations and geometry optimizations under oriented external electric fields within molecule-fixed frames, including Principal axis frame and Local reference frame.
 
 ---
+# Requirements
+- Python >= 3.9
+- PySCF
+- NumPy
+- SciPy
 
