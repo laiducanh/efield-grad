@@ -55,18 +55,22 @@ mol.basis = 'cc-pvdz'
 mol.unit = 'Angstrom'
 mol.build()
 ```
-The electric field vector $\varepsilon$ is defined by 
+The electric field vector $E$ is defined by 
+
 $$
-\varepsilon = \mathbf{U\,R\,r}\Vert\varepsilon\Vert
+E = \mathbf{U\,R\,r}\Vert E\Vert
 $$
-where $\mathbf U$, $\mathbf{R}$, $\mathbf r$, and $\Vert\varepsilon\Vert$ are the transformation matrix, rotation matrix, reference vector, and field strength (in atomic units), respectively. The transformation matrix $\mathbf U$ will be internally determined depending on the molecule-fixed frame in used. By default, the electric field is assumed to be defined in the PAF. In this frame, the eigenvectors of the inertia tensor are sorted in descending order, such that the first principal axis corresponds to the largest eigenvalue. If three non-collinear atoms are specified, the LRF is used instead.
+
+where $\mathbf U$, $\mathbf{R}$, $\mathbf r$, and $\Vert E\Vert$ are the transformation matrix, rotation matrix, reference vector, and field strength (in atomic units), respectively. The transformation matrix $\mathbf U$ will be internally determined depending on the molecule-fixed frame in used. By default, the electric field is assumed to be defined in the PAF. In this frame, the eigenvectors of the inertia tensor are sorted in descending order, such that the first principal axis corresponds to the largest eigenvalue. If three non-collinear atoms are specified, the LRF is used instead.
 ```Python
 from scipy.spatial.transform import Rotation
 
 efield = 0.05
 R = Rotation.from_euler('x', 90, degrees=True).as_matrix()
 rvec=[0, 0, 1]
+# specify three atoms for the LRF
 atoms=[5, 2, 6]
+# atoms = None # otherwise the PAF is used by default
 ```
 Restricted Hartree-Fock and CCSD single-point calculations are performed with field-perturbed Hamiltonian
 ```Python
@@ -97,4 +101,4 @@ print(mol_eq.tostring())
 
 ### Citation
 If you use this code in your research, please cite:
-> Duc Anh Lai, Devin Matthews (2026). \textit{Analytic nuclear gradients including oriented external electric fields in a molecule-fixed frame}. J. Chem. Theory Comput. (under review) [arXiv:2604.01189](https://arxiv.org/abs/2604.01189).
+> Duc Anh Lai, Devin Matthews (2026). *Analytic nuclear gradients including oriented external electric fields in a molecule-fixed frame*. J. Chem. Theory Comput. (under review) [arXiv:2604.01189](https://arxiv.org/abs/2604.01189).
