@@ -9,13 +9,14 @@ import time
 
 class EFieldRHFGradients(rhf.Gradients):
     _keys = rhf.Gradients._keys
-    _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_atoms', 'finite_diff'})
+    _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_frame', 'efield_atoms', 'finite_diff'})
     def __init__(self, method:EFieldRHF):
         super().__init__(method)
         
         self.efield_strength = method.efield_strength
         self.efield_R = method.efield_R
         self.efield_rvec = method.efield_rvec
+        self.efield_frame = method.efield_frame
         self.efield_atoms = method.efield_atoms
         self.finite_diff = False
     
@@ -48,7 +49,7 @@ class EFieldRHFGradients(rhf.Gradients):
         t0 = time.time()
         dm = self.base.make_rdm1()
         g = grad_efield(self.mol, dm, self.efield_strength, self.efield_rvec, self.efield_R, 
-                        self.base.old_paxes, self.efield_atoms, self.finite_diff)
+                        self.efield_frame, self.base.old_paxes, self.efield_atoms, self.finite_diff)
         self.base._set_old_paxes()
         if self.verbose >= logger.NOTE or self.finite_diff:
             finalize(self, g)

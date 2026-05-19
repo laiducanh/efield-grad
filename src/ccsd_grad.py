@@ -8,12 +8,13 @@ import time
 
 class EFieldCCSDGradients(ccsd.Gradients):
     _keys = ccsd.Gradients._keys
-    _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_atoms','finite_diff'})
+    _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_frame', 'efield_atoms','finite_diff'})
     def __init__(self, method):
         super().__init__(method)
         self.efield_strength = method._scf.efield_strength
         self.efield_R = method._scf.efield_R
         self.efield_rvec = method._scf.efield_rvec
+        self.efield_frame = method._scf.efield_frame
         self.efield_atoms = method._scf.efield_atoms
         self.finite_diff = False
 
@@ -46,7 +47,7 @@ class EFieldCCSDGradients(ccsd.Gradients):
         t0 = time.time()
         dm = relaxed_dm(mycc, self.mol, t1, t2, l1, l2, eris, atmlst)    
         g = grad_efield(self.mol, dm, self.efield_strength, self.efield_rvec, self.efield_R, 
-                        mycc._scf.old_paxes, self.efield_atoms, self.finite_diff)
+                        self.efield_frame, mycc._scf.old_paxes, self.efield_atoms, self.finite_diff)
         mycc._scf._set_old_paxes()
         if self.verbose >= logger.NOTE or self.finite_diff:
             finalize(self, g)

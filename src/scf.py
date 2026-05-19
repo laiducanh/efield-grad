@@ -5,19 +5,25 @@ import numpy as np
 from .principal_frame import get_principal_axes, eig_blocks
 from .local_frame import get_local_axes
 from .utilis import process_efield
+from typing import Literal
 
 class EFieldRHF(hf.RHF):
     _keys = hf.RHF._keys
-    _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_atoms', 'old_paxes'})
-    def __init__(self, mol:gto.Mole, efield=0.0, rotation=np.eye(3), rvec=(0,0,1), atoms=None):
+    _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_frame', 'efield_atoms', 'old_paxes'})
+    def __init__(self, mol:gto.Mole, efield=0.0, rotation=np.eye(3), rvec=(0,0,1), frame=Literal['LAB','PAF','LRF'], atoms=None):
         """ if `atoms` is specified, local frame will be defined by `atoms` """
         super().__init__(mol)
 
         self.efield_strength = efield
         self.efield_R = rotation
         self.efield_rvec = np.asarray(rvec)
+        self.efield_frame = frame
         self.old_paxes = None
         self.mol = mol
+        if self.efield_frame not in ['LAB','PAF','LRF']:
+            self.efield_frame = 'LAB'
+            logger.note(self, f"Frame option {self.efield_frame} is not supported, available options are 'LAB', 'PAF', and 'LRF'")
+            logger.note(self, f"Electric field will be defined in laboratory frame")
         if atoms is None:
             self.efield_atoms = None
         else:
@@ -38,15 +44,17 @@ class EFieldRHF(hf.RHF):
         " update electric field vector "
 
         mol = self.mol
-        if self.efield_atoms is None:
+        if self.efield_frame == 'PAF':
             _, axes = get_principal_axes(mol.atom_coords(), mol.atom_mass_list(), self.old_paxes)
-        else:
+        elif self.efield_frame == 'LRF':
             axes = get_local_axes(*self.mol.atom_coords()[self.efield_atoms])[0]
-            
+        else:
+            axes = np.eye(3)
+
         return process_efield(axes, self.efield_strength, self.efield_R, self.efield_rvec)
 
     def _set_old_paxes(self, old_axes=None):
-        if self.efield_atoms is not None:
+        if self.efield_frame not in ['LAB','LRF']:
             return 
         if old_axes is None:
             mol = self.mol
@@ -61,11 +69,13 @@ class EFieldRHF(hf.RHF):
         EFIELD = self._get_efield()
         
         if self.verbose >= 1: # default self.verbose = 3
-            if self.efield_atoms is None:
+            if self.efield_frame == 'PAF':
                 logger.note(self, 'Electric field is defined in principal axes frame')
-            else:
+            elif self.efield_frame == 'LRF':
                 a, b, c = self.efield_atoms
                 logger.note(self, f'Electric field is defined in local frame of atoms {a}, {b}, {c}')
+            else:
+                logger.note(self, 'Electric field is defined in laboratory frame')
             
             logger.note(self, "Hamiltonian is modified with electric field: " \
             "Ex = {:.5f}, Ey = {:.5f}, Ez = {:.5f}".format(*EFIELD))        
@@ -87,7 +97,7 @@ class EFieldRHF(hf.RHF):
     
     def scf(self, dm0=None, **kwargs):
 
-        if self.efield_atoms is None:
+        if self.efield_frame == 'PAF':
             self._check_principal_axes()
 
         return super().scf(dm0, **kwargs)
