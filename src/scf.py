@@ -10,7 +10,7 @@ from typing import Literal
 class EFieldRHF(hf.RHF):
     _keys = hf.RHF._keys
     _keys.update({'efield_strength', 'efield_R', 'efield_rvec', 'efield_frame', 'efield_atoms', 'old_paxes'})
-    def __init__(self, mol:gto.Mole, efield=0.0, rotation=np.eye(3), rvec=(0,0,1), frame=Literal['LAB','PAF','LRF'], atoms=None):
+    def __init__(self, mol:gto.Mole, efield=0.0, rotation=np.eye(3), rvec=(0,0,1), frame:Literal['LAB','PAF','LRF']='PAF', atoms=None):
         """ if `atoms` is specified, local frame will be defined by `atoms` """
         super().__init__(mol)
 
